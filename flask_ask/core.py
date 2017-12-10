@@ -715,12 +715,14 @@ class Ask(object):
         convert_errors = {}
 
         request_data = {}
+        request_data_raw = {}
         intent = getattr(self.request, 'intent', None)
         if intent is not None:
             if intent.slots is not None:
                 for slot_key in intent.slots.keys():
                     slot_object = getattr(intent.slots, slot_key)
                     request_data[slot_object.name] = getattr(slot_object, 'value', None)
+                    request_data_raw[slot_object.name] = slot_object
 
         else:
             for param_name in self.request:
@@ -728,7 +730,10 @@ class Ask(object):
 
         for arg_name in arg_names:
             param_or_slot = mapping.get(arg_name, arg_name)
-            arg_value = request_data.get(param_or_slot)
+            if arg_name.endswith("_raw"):
+                arg_value = request_data_raw.get(param_or_slot[:-4])
+            else:
+                arg_value = request_data.get(param_or_slot)
             if arg_value is None or arg_value == "":
                 if arg_name in default:
                     default_value = default[arg_name]
